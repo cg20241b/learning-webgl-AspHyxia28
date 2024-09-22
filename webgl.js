@@ -10,7 +10,7 @@ if (!gl) {
     alert('Your browser does not support WebGL');
 }
 
-// Set the background color to pitch black
+// Set the initial background color to pitch black
 gl.clearColor(0.0, 0.0, 0.0, 1.0);
 gl.clear(gl.COLOR_BUFFER_BIT);
 
@@ -24,6 +24,12 @@ const vertexShaderSource = `
 const fragmentShaderSource = `
     void main(void) {
         gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // Fuchsia color
+    }
+`;
+
+const fragmentShaderSourceGreen = `
+    void main(void) {
+        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green color
     }
 `;
 
@@ -41,6 +47,7 @@ function createShader(gl, type, source) {
 
 const vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
 const fragmentShader = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSource);
+const fragmentShaderGreen = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourceGreen);
 
 function createProgram(gl, vertexShader, fragmentShader) {
     const program = gl.createProgram();
@@ -55,9 +62,9 @@ function createProgram(gl, vertexShader, fragmentShader) {
 }
 
 const shaderProgram = createProgram(gl, vertexShader, fragmentShader);
-gl.useProgram(shaderProgram);
+const shaderProgramGreen = createProgram(gl, vertexShader, fragmentShaderGreen);
 
-const vertices = new Float32Array([
+const verticesLines = new Float32Array([
     // M
     -0.8,  0.5,  -0.8, -0.5,
     -0.8,  0.5,  -0.7,  0.0,
@@ -73,45 +80,42 @@ const vertices = new Float32Array([
      0.0,  0.0,   0.1, -0.5,
 ]);
 
+const verticesTriangles = new Float32Array([
+    // M
+    -0.8,  0.5,  -0.8, -0.5,  -0.7,  0.0,
+    -0.7,  0.0,  -0.6,  0.5,  -0.6, -0.5,
+    // I
+    -0.4,  0.5,  -0.4, -0.5,  -0.4,  0.5,
+    // R
+    -0.2,  0.5,  -0.2, -0.5,   0.0,  0.5,
+     0.0,  0.5,   0.0,  0.0,  -0.2,  0.0,
+     0.0,  0.0,   0.1, -0.5,  -0.2, -0.5,
+]);
+
 const vertexBuffer = gl.createBuffer();
 gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
-gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
 
 const position = gl.getAttribLocation(shaderProgram, 'aVertexPosition');
 gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 gl.enableVertexAttribArray(position);
 
-gl.drawArrays(gl.LINES, 0, vertices.length / 2);
+let useLines = true;
 
-setTimeout(() => {
-    gl.clearColor(1.0, 0.0, 1.0, 1.0); // Fuchsia background
-    gl.clear(gl.COLOR_BUFFER_BIT);
+function draw() {
+    if (useLines) {
+        gl.clearColor(0.0, 0.0, 0.0, 1.0); // Black background
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(shaderProgram);
+        gl.bufferData(gl.ARRAY_BUFFER, verticesLines, gl.STATIC_DRAW);
+        gl.drawArrays(gl.LINES, 0, verticesLines.length / 2);
+    } else {
+        gl.clearColor(1.0, 0.0, 1.0, 1.0); // Fuchsia background
+        gl.clear(gl.COLOR_BUFFER_BIT);
+        gl.useProgram(shaderProgramGreen);
+        gl.bufferData(gl.ARRAY_BUFFER, verticesTriangles, gl.STATIC_DRAW);
+        gl.drawArrays(gl.TRIANGLES, 0, verticesTriangles.length / 2);
+    }
+    useLines = !useLines;
+}
 
-    const triangleVertices = new Float32Array([
-        // M
-        -0.8,  0.5,  -0.8, -0.5,  -0.7,  0.0,
-        -0.7,  0.0,  -0.6,  0.5,  -0.6, -0.5,
-        // I
-        -0.4,  0.5,  -0.4, -0.5,  -0.4,  0.5,
-        // R
-        -0.2,  0.5,  -0.2, -0.5,   0.0,  0.5,
-         0.0,  0.5,   0.0,  0.0,  -0.2,  0.0,
-         0.0,  0.0,   0.1, -0.5,  -0.2, -0.5,
-    ]);
-
-    gl.bufferData(gl.ARRAY_BUFFER, triangleVertices, gl.STATIC_DRAW);
-
-    const fragmentShaderSourceGreen = `
-        void main(void) {
-            gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green color
-        }
-    `;
-    const fragmentShaderGreen = createShader(gl, gl.FRAGMENT_SHADER, fragmentShaderSourceGreen);
-    const shaderProgramGreen = createProgram(gl, vertexShader, fragmentShaderGreen);
-    gl.useProgram(shaderProgramGreen);
-
-    gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(position);
-
-    gl.drawArrays(gl.TRIANGLES, 0, triangleVertices.length / 2);
-}, 3000);
+setInterval(draw, 3000);
