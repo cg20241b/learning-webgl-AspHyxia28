@@ -1,5 +1,5 @@
 const canvas = document.getElementById('glCanvas');
-const gl = canvas.getContext('webgl');
+let gl = canvas.getContext('webgl');
 
 if (!gl) {
     console.error('WebGL not supported, falling back on experimental-webgl');
@@ -23,13 +23,13 @@ const vertexShaderSource = `
 
 const fragmentShaderSource = `
     void main(void) {
-        gl_FragColor = vec4(1.0, 0.0, 1.0, 1.0); // Fuchsia color
+        gl_FragColor = vec4(0.475, 0.808, 0.878, 1.0); // #79CEE0 color
     }
 `;
 
 const fragmentShaderSourceGreen = `
     void main(void) {
-        gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0); // Green color
+        gl_FragColor = vec4(0.475, 0.808, 0.878, 1.0); // #79CEE0 color
     }
 `;
 
